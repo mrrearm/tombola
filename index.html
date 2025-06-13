@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tombola Napoletana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 10px rgba(255,255,255,0.3); }
+            to { text-shadow: 2px 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.5); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .tabellone {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .tabellone h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2a5298;
+            font-size: 1.8em;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+        }
+
+        .number {
+            aspect-ratio: 1;
+            background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .number:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .number.extracted {
+            background: linear-gradient(145deg, #28a745, #20c997);
+            color: white;
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .current-number {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .current-number h2 {
+            color: #2a5298;
+            margin-bottom: 20px;
+        }
+
+        .number-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .smorfia {
+            font-style: italic;
+            color: #666;
+            font-size: 1.1em;
+            margin-top: 10px;
+            min-height: 50px;
+        }
+
+        .cartelle-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .cartella {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .cartella h3 {
+            text-align: center;
+            color: #2a5298;
+            margin-bottom: 15px;
+        }
+
+        .cartella-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 3px;
+        }
+
+        .cartella-number {
+            aspect-ratio: 1;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .cartella-number:not(:empty):hover {
+            background: #e9ecef;
+            transform: scale(1.1);
+        }
+
+        .cartella-number.marked {
+            background: linear-gradient(145deg, #ff6b6b, #ee5a5a);
+            color: white;
+        }
+
+        .cartella-number:empty {
+            background: transparent;
+            border: none;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .stats h3 {
+            color: #2a5298;
+            margin-bottom: 10px;
+        }
+
+        .victory {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(145deg, #28a745, #20c997);
+            color: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: celebrazione 1s ease-in-out;
+        }
+
+        @keyframes celebrazione {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .number-display {
+                font-size: 3em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎲 TOMBOLA NAPOLETANA 🎲</h1>
+            <p>Il gioco tradizionale delle feste!</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="estraiNumero()" id="estraiBtn">Estrai Numero</button>
+            <button class="btn" onclick="nuovoGioco()">Nuovo Gioco</button>
+            <button class="btn" onclick="aggiungiCartella()">Aggiungi Cartella</button>
+        </div>
+
+        <div class="stats">
+            <h3>Numeri estratti: <span id="contatore">0</span>/90</h3>
+        </div>
+
+        <div class="game-area">
+            <div class="tabellone">
+                <h2>Tabellone</h2>
+                <div class="numbers-grid" id="tabellone"></div>
+            </div>
+
+            <div class="current-number">
+                <h2>Ultimo Numero</h2>
+                <div class="number-display" id="numeroCorrente">-</div>
+                <div class="smorfia" id="smorfia">Premi "Estrai Numero" per iniziare!</div>
+            </div>
+        </div>
+
+        <div class="cartelle-container" id="cartelle"></div>
+    </div>
+
+    <script>
+        const smorfia = {
+            1: "L'Italia", 2: "'A piccerella", 3: "'A gatta", 4: "'O puorco", 5: "'A mano",
+            6: "Chella che guarda 'nterra", 7: "'O vaso", 8: "'A Madonna", 9: "'A figliata", 10: "'E fasule",
+            11: "'E surice", 12: "'O capitone", 13: "Sant'Antonio", 14: "'O mbriaco", 15: "'O guaglione",
+            16: "'O culo", 17: "'A disgrazia", 18: "'O sangue", 19: "'A risata", 20: "'A festa",
+            21: "'A femmena nuda", 22: "'O pazzo", 23: "'O scemo", 24: "'E guardie", 25: "Natale",
+            26: "Anna", 27: "'O cantero", 28: "'E zzizze", 29: "'O pate d''e criature", 30: "'E palle d''o tenente",
+            31: "'O padrone 'e casa", 32: "'O capitone", 33: "L'anne 'e Cristo", 34: "'A capa", 35: "L'aucelluzz",
+            36: "'E castagnelle", 37: "'O monaco", 38: "'E mazzate", 39: "'A funa", 40: "'A paposcia",
+            41: "'O curtiello", 42: "'O cafè", 43: "'Onna pereta fore 'o balcone", 44: "'E ccancelle", 45: "'O vino bbuono",
+            46: "'E denare", 47: "'O muorto", 48: "'O muorto che parla", 49: "'O piezzo 'e carne", 50: "'O ppane",
+            51: "'O ciardino", 52: "'A mamma", 53: "'O viecchio", 54: "'O cappiello", 55: "'A museca",
+            56: "'A caduta", 57: "'O gobbo", 58: "'O paccotto", 59: "'E pile", 60: "Se lamenta",
+            61: "'O cacciatore", 62: "'O muorto acciso", 63: "'A sposa", 64: "'A sciammeria", 65: "'O chianto",
+            66: "'E ddoie zetelle", 67: "'O totano", 68: "'A zuppa cotta", 69: "Sott'e 'ncoppa", 70: "'O palazzo",
+            71: "L'ommo 'e merda", 72: "'A meraviglia", 73: "'O spitale", 74: "'A rotta", 75: "Pulcinella",
+            76: "'A funtana", 77: "'E riavule", 78: "'A bella figliola", 79: "'O mariuolo", 80: "'A vocca",
+            81: "'E sciure", 82: "'A tavula 'mbandita", 83: "'O maletiempo", 84: "'A chiesa", 85: "L'aneme 'o priatorio",
+            86: "'A puteca", 87: "'E perucchie", 88: "'E casecavalle", 89: "'A vecchia", 90: "'A paura"
+        };
+
+        let numeriEstratti = [];
+        let cartelle = [];
+        let gameStarted = false;
+
+        function inizializzaTabellone() {
+            const tabellone = document.getElementById('tabellone');
+            tabellone.innerHTML = '';
+            
+            for (let i = 1; i <= 90; i++) {
+                const div = document.createElement('div');
+                div.className = 'number';
+                div.textContent = i;
+                div.id = `num-${i}`;
+                tabellone.appendChild(div);
+            }
+        }
+
+        function estraiNumero() {
+            if (numeriEstratti.length === 90) {
+                alert('Tutti i numeri sono stati estratti!');
+                return;
+            }
+
+            let numero;
+            do {
+                numero = Math.floor(Math.random() * 90) + 1;
+            } while (numeriEstratti.includes(numero));
+
+            numeriEstratti.push(numero);
+            gameStarted = true;
+
+            // Aggiorna tabellone
+            const numeroElement = document.getElementById(`num-${numero}`);
+            numeroElement.classList.add('extracted');
+
+            // Aggiorna display numero corrente
+            document.getElementById('numeroCorrente').textContent = numero;
+            document.getElementById('smorfia').textContent = smorfia[numero];
+            document.getElementById('contatore').textContent = numeriEstratti.length;
+
+            // Controlla le cartelle
+            controllaCartelle();
+
+            // Disabilita il pulsante se tutti i numeri sono estratti
+            if (numeriEstratti.length === 90) {
+                document.getElementById('estraiBtn').disabled = true;
+            }
+        }
+
+        function generaCartella() {
+            const cartella = Array(27).fill(null);
+            const colonne = Array(9).fill().map(() => []);
+            
+            // Genera numeri per ogni colonna
+            for (let col = 0; col < 9; col++) {
+                const min = col === 0 ? 1 : col * 10;
+                const max = col === 8 ? 90 : (col + 1) * 10 - 1;
+                
+                const numeriColonna = [];
+                while (numeriColonna.length < 3) {
+                    const num = Math.floor(Math.random() * (max - min + 1)) + min;
+                    if (!numeriColonna.includes(num)) {
+                        numeriColonna.push(num);
+                    }
+                }
+                colonne[col] = numeriColonna.sort((a, b) => a - b);
+            }
+
+            // Distribuisci i numeri nella cartella
+            for (let riga = 0; riga < 3; riga++) {
+                const colonneUsate = new Set();
+                let numeriInRiga = 0;
+                
+                while (numeriInRiga < 5) {
+                    const col = Math.floor(Math.random() * 9);
+                    if (!colonneUsate.has(col) && colonne[col].length > 0) {
+                        cartella[riga * 9 + col] = colonne[col].shift();
+                        colonneUsate.add(col);
+                        numeriInRiga++;
+                    }
+                }
+            }
+
+            return cartella.map(num => ({
+                numero: num,
+                marcato: false
+            }));
+        }
+
+        function aggiungiCartella() {
+            const nuovaCartella = {
+                id: cartelle.length + 1,
+                numeri: generaCartella(),
+                cinquine: 0,
+                decine: 0,
+                tombola: false
+            };
+            
+            cartelle.push(nuovaCartella);
+            renderCartelle();
+        }
+
+        function renderCartelle() {
+            const container = document.getElementById('cartelle');
+            container.innerHTML = '';
+
+            cartelle.forEach(cartella => {
+                const div = document.createElement('div');
+                div.className = 'cartella';
+                div.innerHTML = `
+                    <h3>Cartella ${cartella.id} ${cartella.tombola ? '🏆' : ''}</h3>
+                    <div class="cartella-grid" id="cartella-${cartella.id}"></div>
+                    <p>Cinquine: ${cartella.cinquine} | Decine: ${cartella.decine}</p>
+                `;
+                container.appendChild(div);
+
+                const grid = document.getElementById(`cartella-${cartella.id}`);
+                cartella.numeri.forEach((cella, index) => {
+                    const cellaDiv = document.createElement('div');
+                    cellaDiv.className = 'cartella-number';
+                    if (cella.numero) {
+                        cellaDiv.textContent = cella.numero;
+                        if (cella.marcato) {
+                            cellaDiv.classList.add('marked');
+                        }
+                        cellaDiv.onclick = () => toggleMarca(cartella.id, index);
+                    }
+                    grid.appendChild(cellaDiv);
+                });
+            });
+        }
+
+        function toggleMarca(cartellaId, index) {
+            const cartella = cartelle.find(c => c.id === cartellaId);
+            if (cartella && cartella.numeri[index].numero) {
+                cartella.numeri[index].marcato = !cartella.numeri[index].marcato;
+                renderCartelle();
+                controllaVittorie(cartella);
+            }
+        }
+
+        function controllaCartelle() {
+            cartelle.forEach(cartella => {
+                cartella.numeri.forEach(cella => {
+                    if (cella.numero && numeriEstratti.includes(cella.numero)) {
+                        cella.marcato = true;
+                    }
+                });
+                controllaVittorie(cartella);
+            });
+            renderCartelle();
+        }
+
+        function controllaVittorie(cartella) {
+            const righe = [
+                cartella.numeri.slice(0, 9),
+                cartella.numeri.slice(9, 18),
+                cartella.numeri.slice(18, 27)
+            ];
+
+            let cinquineAttuali = 0;
+            let decineAttuali = 0;
+
+            righe.forEach(riga => {
+                const numeriMarcati = riga.filter(cella => cella.numero && cella.marcato).length;
+                if (numeriMarcati === 5) {
+                    cinquineAttuali++;
+                }
+                if (numeriMarcati >= 2) {
+                    decineAttuali++;
+                }
+            });
+
+            // Controlla nuove vittorie
+            if (cinquineAttuali > cartella.cinquine) {
+                mostraVittoria(`Cartella ${cartella.id} ha fatto ${cinquineAttuali === 1 ? 'cinquina' : cinquineAttuali + ' cinquine'}!`);
+            }
+            
+            if (decineAttuali > cartella.decine && cartella.decine === 0) {
+                mostraVittoria(`Cartella ${cartella.id} ha fatto ambo/terno/quaterna!`);
+            }
+
+            cartella.cinquine = cinquineAttuali;
+            cartella.decine = decineAttuali;
+
+            // Controlla tombola
+            const tuttiMarcati = cartella.numeri.filter(cella => cella.numero).every(cella => cella.marcato);
+            if (tuttiMarcati && !cartella.tombola) {
+                cartella.tombola = true;
+                mostraVittoria(`🎉 TOMBOLA! Cartella ${cartella.id} ha vinto! 🎉`);
+            }
+        }
+
+        function mostraVittoria(messaggio) {
+            const overlay = document.createElement('div');
+            overlay.className = 'overlay';
+            
+            const victory = document.createElement('div');
+            victory.className = 'victory';
+            victory.innerHTML = `
+                <h2>${messaggio}</h2>
+                <button class="btn" onclick="chiudiVittoria()" style="margin-top: 20px;">Continua</button>
+            `;
+
+            document.body.appendChild(overlay);
+            document.body.appendChild(victory);
+        }
+
+        function chiudiVittoria() {
+            document.querySelector('.overlay')?.remove();
+            document.querySelector('.victory')?.remove();
+        }
+
+        function nuovoGioco() {
+            numeriEstratti = [];
+            cartelle = [];
+            gameStarted = false;
+            
+            document.getElementById('numeroCorrente').textContent = '-';
+            document.getElementById('smorfia').textContent = 'Premi "Estrai Numero" per iniziare!';
+            document.getElementById('contatore').textContent = '0';
+            document.getElementById('estraiBtn').disabled = false;
+            
+            inizializzaTabellone();
+            renderCartelle();
+        }
+
+        // Inizializza il gioco
+        inizializzaTabellone();
+        aggiungiCartella();
+        aggiungiCartella();
+    </script>
+</body>
+</html>
